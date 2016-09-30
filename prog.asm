@@ -1,11 +1,19 @@
 .eqv VGA 0xFF000000
 .eqv WIDTH 320
 .eqv HEIGHT 240
+.eqv OFFSET_ORIGEM 38560
+.eqv EIXO_X 38400
+.eqv EIXO_Y 160
 
 .data
-INF:   .float -2.0
-SUP:   .float 2.0
-UM:    .float 1.0
+INF:      .float -1.0
+SUP:      .float +1.0
+UM:       .float +1.0
+PRECISAO: .float +0.1
+FUN_A:    .float -1.0
+DEBUG:    .asciiz "\n"
+OFFSET:   .asciiz "Offset: "
+ENDERECO: .asciiz "Endereco: "
 
 .text
 MAIN:
@@ -15,12 +23,16 @@ MAIN:
 
 PLOT:
   la $t7, VGA
+  # li $t0, OFFSET_ORIGEM
+  # add $t7, $t7, $t0       # centro do display = origem
 	li $t6, WIDTH
 
-	li $t5,0xC0  		# cor
+	li $t5,0x00  		# cor
 
-	# jal PRINTA_EIXO_X
-	# jal PRINTA_EIXO_Y
+	jal PRINTA_EIXO_X
+	jal PRINTA_EIXO_Y
+
+  li $t5,0x02  		# cor
 
   add $s5, $zero, $ra
 
@@ -28,41 +40,60 @@ PLOT:
 
 	jr $s5
 
-# a) F(x)=-x .. [-1,1]
+# a) F(x)= -x .. [-1,1]
 FUNCAO_A:
-	li $t0, -1		# int x = -1
-	li $t1, 1		# menor que
-
-	li $t2, -1		# F(x)=-x
-
+	l.s $f0, INF          # $f0 é o contador
+	l.s $f1, SUP          # $f1 é o limite do contador
+	l.s $f2, FUN_A		    # F(x)=-x
+  l.s $f3, PRECISAO	    # x++
 TESTA:
-	bne $t0, $t1, LOOP_A	# x = -1   while(atual!=fim) do
+	c.lt.s $f0, $f1
+  bc1t LOOP_A	      # while(atual<fim) do
 	jr $ra
 
-# a0
-# a1
 LOOP_A:
   addi $sp, $sp, -4
   sw $ra, 0($sp)
 
-	add $a0, $zero, $t0		# a0 = x (t0 ainda tem x)
-	mul $a1, $t0, $t2	# a1 = y
+	mul.s $f12, $f0, $f2	      # $f12 = y
 	jal DESENHA
 
   lw $ra, 0($sp)
   addi $sp, $sp, 4
 
-	addi $t0, $t0, 1	# x++
+  add.s $f0, $f0, $f3     # x++
   j TESTA
 
-# a0 = x
-# a1 = y
 DESENHA:
-  mul $t3,$t6,$a1   	# $t3 = 320*Y
-  add $t3,$t3,$a0   	# $t3 = Y*320+X
-  add $t3,$t3,$t7   	# $t3 = Endereco
-  sb $t5,0($t3)	  	# plota o pixel na tela
+  mtc1 $t6, $f4           # $f4 = $t6 = WIDTH (int)
+  cvt.s.w $f4, $f4        # $f4 = WIDTH (float)
+  mul.s $f5, $f4, $f12   	# $f5 = 320*Y
+  add.s $f5, $f5, $f0   	# $f5 = Y*320+X (float)
+  cvt.w.s $f5, $f5        # $f5 = Y*320+X (int)
+  mfc1 $t9, $f5           # $t9 = offset
+  add $t8, $t7, $t9   	  # $t8 = Endereco + offset
+
+  # li $v0, 1
+  # move $a0, $t8
+  # syscall
+  # li $v0, 4
+  # la $a0, DEBUG
+  # syscall
+
+  sb $t5, 0($t8)	  	    # plota o pixel na tela
+
+  li $v0, 32
+  li $a0, 1000
+  syscall
+
   jr $ra
+
+
+
+
+
+
+
 
 # b) F(x)=x^2+1 .. [-2,2]
 FUNCAO_B:
@@ -74,11 +105,36 @@ FUNCAO_C:
 FUNCAO_D:
 
 PRINTA_EIXO_X:
-	# INT X
-	# FOR X < 320
-	# DESENHA
+  li $t0, 0
+  li $t1, 320
+  li $t2, EIXO_X
+VOLTA_PRINTA_X:
+  bne $t0, $t1, PRINTA_X
+  jr $ra
+PRINTA_X:
+  add $t3, $t2, $t7
+  sb $t5, 0($t3)
+  addi $t0, $t0, 1
+  addi $t2, $t2, 1
+  j VOLTA_PRINTA_X
 
 PRINTA_EIXO_Y:
-	# INT Y
-	# FOR Y < 240
-	# DESENHA
+  li $t0, 0
+  li $t1, 240
+  li $t2, EIXO_Y
+VOLTA_PRINTA_Y:
+  bne $t0, $t1, PRINTA_Y
+  jr $ra
+PRINTA_Y:
+  add $t3, $t2, $t7
+  sb $t5, 0($t3)
+  addi $t0, $t0, 1
+  addi $t2, $t2, 320
+  j VOLTA_PRINTA_Y
+
+
+
+    # li $v0, 2
+    # syscall
+    # mov.s $f12, $f0
+    # syscall
