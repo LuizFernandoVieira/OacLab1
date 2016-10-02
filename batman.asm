@@ -60,7 +60,11 @@
 		jal PLANO_CARTESIANO
 		jal INTERVALO
 		jal DEFINE_QUADRADO
-		jal DESENHA
+
+		jal DESENHA_VERMELHO
+		jal DESENHA_AMARELO
+		jal DESENHA_VERDE
+		jal DESENHA_AZUL
 
 		li $v0, 10
 		syscall
@@ -144,7 +148,6 @@
 	#		sqrt(1-(x/7)^2)+(5+0.97*(abs(x-0.5)+abs(x+0.5))-3 * (abs(x-0.75)+abs(x+0.75))) 
 	#		* 
 	#		(1+abs(1-abs(x))/(1-abs(x)))
-
 	FUNCAO_AZUL:
 		l.s $f20, ZERO
 		l.s $f21, TRES
@@ -304,7 +307,13 @@
 			EXIT_X:
 				jr $ra
 
-	DESENHA:
+	###################################################
+	#
+	# DESENHA VERMELHO
+	#
+	###################################################
+
+	DESENHA_VERMELHO:
 
 		la $t2, END_BASE
 		li $t3, COR_VERMELHA
@@ -312,7 +321,211 @@
 		addi $sp, $sp, -4
 		sw $ra, 0($sp)
 
-		DESENHA_CALCULA_PONTO:
+		DESENHA_CALCULA_PONTO_VERMELHO:
+			jal FUNCAO_VERMELHO
+
+			# Verifica se o expoente é diferente de 255
+			mfc1 $s0, $f12
+			sll $s0, $s0, 1
+			srl $s0, $s0, 24
+			subi $s0, $s0, 255
+
+			DESENHA_INCREMENTA_VERMELHO:
+				add.s $f0, $f0, $f27			# x = x + tamanho_quadrado
+
+				c.lt.s $f1, $f0						# se LSUP < x
+				bc1t DESENHA_FIM_VERMELHO
+
+				beq $s0, $zero, DESENHA_CALCULA_PONTO_VERMELHO		# Ignora f(x) = NaN ou f(x) = +/- inf
+
+		DESENHA_CALCULA_X_VERMELHO:
+			div.s $f4, $f0, $f27			# f4 = x/tamanho_quadrado
+			floor.w.s $f4, $f4				# f4 = floor(f4)
+			mfc1 $t0, $f4							# t0 = x/tamanho_quadrado
+
+		DESENHA_CALCULA_Y_VERMELHO:
+			div.s $f5, $f12, $f27			# f5 = y/tamanho_quadrado
+			floor.w.s $f5, $f5				# f5 = floor(f5)
+			mfc1 $t1, $f5
+
+			subi $t1, $t1, 240
+			abs $t1, $t1
+
+		PLOTA_PONTO_VERMELHO:
+			mul $t5, $t4, $t1					# t5 = 320*y
+			add $t5, $t5, $t0					# t5 = 320*y + x
+			add $t5, $t5, $t2					# t5 = END_BASE + 320*y + x
+
+			addi $t5, $t5, -25079
+
+			slt $s0, $t5, $t2					# se t5 < t2
+			bne $s0, $zero, pula_print_VERMELHO
+			
+			sb $t3, 0($t5)						# plota o ponto no Bitmap Display
+			
+			pula_print_VERMELHO:
+				j DESENHA_CALCULA_PONTO_VERMELHO
+
+			# sb $t3, 0($t5)						# plota o ponto no Bitmap Display
+
+			# j DESENHA_CALCULA_PONTO
+
+		DESENHA_FIM_VERMELHO:
+			lw $ra, 0($sp)
+			addi $sp, $sp, 4
+			jr $ra
+
+	###################################################
+	#
+	# DESENHA AMARELO
+	#
+	###################################################
+
+	DESENHA_AMARELO:
+
+		la $t2, END_BASE
+		li $t3, COR_AMARELA
+		li $t4, WIDTH_INT
+		addi $sp, $sp, -4
+		sw $ra, 0($sp)
+
+		DESENHA_CALCULA_PONTO_AMARELO:
+			jal FUNCAO_AMARELO
+
+			# Verifica se o expoente é diferente de 255
+			mfc1 $s0, $f12
+			sll $s0, $s0, 1
+			srl $s0, $s0, 24
+			subi $s0, $s0, 255
+
+			DESENHA_INCREMENTA_AMARELO:
+				add.s $f0, $f0, $f27			# x = x + tamanho_quadrado
+
+				c.lt.s $f1, $f0						# se LSUP < x
+				bc1t DESENHA_FIM_AMARELO
+
+				beq $s0, $zero, DESENHA_CALCULA_PONTO_AMARELO		# Ignora f(x) = NaN ou f(x) = +/- inf
+
+		DESENHA_CALCULA_X_AMARELO:
+			div.s $f4, $f0, $f27			# f4 = x/tamanho_quadrado
+			floor.w.s $f4, $f4				# f4 = floor(f4)
+			mfc1 $t0, $f4							# t0 = x/tamanho_quadrado
+
+		DESENHA_CALCULA_Y_AMARELO:
+			div.s $f5, $f12, $f27			# f5 = y/tamanho_quadrado
+			floor.w.s $f5, $f5				# f5 = floor(f5)
+			mfc1 $t1, $f5
+
+			subi $t1, $t1, 240
+			abs $t1, $t1
+
+		PLOTA_PONTO_AMARELO:
+			mul $t5, $t4, $t1					# t5 = 320*y
+			add $t5, $t5, $t0					# t5 = 320*y + x
+			add $t5, $t5, $t2					# t5 = END_BASE + 320*y + x
+
+			addi $t5, $t5, -25079
+
+			slt $s0, $t5, $t2					# se t5 < t2
+			bne $s0, $zero, pula_print_AMARELO
+			
+			sb $t3, 0($t5)						# plota o ponto no Bitmap Display
+			
+			pula_print_AMARELO:
+				j DESENHA_CALCULA_PONTO_AMARELO
+
+			# sb $t3, 0($t5)						# plota o ponto no Bitmap Display
+
+			# j DESENHA_CALCULA_PONTO
+
+		DESENHA_FIM_AMARELO:
+			lw $ra, 0($sp)
+			addi $sp, $sp, 4
+			jr $ra
+
+	###################################################
+	#
+	# DESENHA VERDE
+	#
+	###################################################
+
+	DESENHA_VERDE:
+
+		la $t2, END_BASE
+		li $t3, COR_VERDE
+		li $t4, WIDTH_INT
+		addi $sp, $sp, -4
+		sw $ra, 0($sp)
+
+		DESENHA_CALCULA_PONTO_VERDE:
+			jal FUNCAO_VERDE
+
+			# Verifica se o expoente é diferente de 255
+			mfc1 $s0, $f12
+			sll $s0, $s0, 1
+			srl $s0, $s0, 24
+			subi $s0, $s0, 255
+
+			DESENHA_INCREMENTA_VERDE:
+				add.s $f0, $f0, $f27			# x = x + tamanho_quadrado
+
+				c.lt.s $f1, $f0						# se LSUP < x
+				bc1t DESENHA_FIM_VERDE
+
+				beq $s0, $zero, DESENHA_CALCULA_PONTO_VERDE		# Ignora f(x) = NaN ou f(x) = +/- inf
+
+		DESENHA_CALCULA_X_VERDE:
+			div.s $f4, $f0, $f27			# f4 = x/tamanho_quadrado
+			floor.w.s $f4, $f4				# f4 = floor(f4)
+			mfc1 $t0, $f4							# t0 = x/tamanho_quadrado
+
+		DESENHA_CALCULA_Y_VERDE:
+			div.s $f5, $f12, $f27			# f5 = y/tamanho_quadrado
+			floor.w.s $f5, $f5				# f5 = floor(f5)
+			mfc1 $t1, $f5
+
+			subi $t1, $t1, 240
+			abs $t1, $t1
+
+		PLOTA_PONTO_VERDE:
+			mul $t5, $t4, $t1					# t5 = 320*y
+			add $t5, $t5, $t0					# t5 = 320*y + x
+			add $t5, $t5, $t2					# t5 = END_BASE + 320*y + x
+
+			addi $t5, $t5, -25079
+
+			slt $s0, $t5, $t2					# se t5 < t2
+			bne $s0, $zero, pula_print_VERDE
+			
+			sb $t3, 0($t5)						# plota o ponto no Bitmap Display
+			
+			pula_print_VERDE:
+				j DESENHA_CALCULA_PONTO_VERDE
+
+			# sb $t3, 0($t5)						# plota o ponto no Bitmap Display
+
+			# j DESENHA_CALCULA_PONTO
+
+		DESENHA_FIM_VERDE:
+			lw $ra, 0($sp)
+			addi $sp, $sp, 4
+			jr $ra
+
+	###################################################
+	#
+	# DESENHA AZUL
+	#
+	###################################################
+
+	DESENHA_AZUL:
+
+		la $t2, END_BASE
+		li $t3, COR_AZUL
+		li $t4, WIDTH_INT
+		addi $sp, $sp, -4
+		sw $ra, 0($sp)
+
+		DESENHA_CALCULA_PONTO_AZUL:
 			jal FUNCAO_AZUL
 
 			# Verifica se o expoente é diferente de 255
@@ -321,20 +534,20 @@
 			srl $s0, $s0, 24
 			subi $s0, $s0, 255
 
-			DESENHA_INCREMENTA:
+			DESENHA_INCREMENTA_AZUL:
 				add.s $f0, $f0, $f27			# x = x + tamanho_quadrado
 
 				c.lt.s $f1, $f0						# se LSUP < x
-				bc1t DESENHA_FIM
+				bc1t DESENHA_FIM_AZUL
 
-				beq $s0, $zero, DESENHA_CALCULA_PONTO		# Ignora f(x) = NaN ou f(x) = +/- inf
+				beq $s0, $zero, DESENHA_CALCULA_PONTO_AZUL		# Ignora f(x) = NaN ou f(x) = +/- inf
 
-		DESENHA_CALCULA_X:
+		DESENHA_CALCULA_X_AZUL:
 			div.s $f4, $f0, $f27			# f4 = x/tamanho_quadrado
 			floor.w.s $f4, $f4				# f4 = floor(f4)
 			mfc1 $t0, $f4							# t0 = x/tamanho_quadrado
 
-		DESENHA_CALCULA_Y:
+		DESENHA_CALCULA_Y_AZUL:
 			div.s $f5, $f12, $f27			# f5 = y/tamanho_quadrado
 			floor.w.s $f5, $f5				# f5 = floor(f5)
 			mfc1 $t1, $f5
@@ -342,7 +555,7 @@
 			subi $t1, $t1, 240
 			abs $t1, $t1
 
-		PLOTA_PONTO:
+		PLOTA_PONTO_AZUL:
 			mul $t5, $t4, $t1					# t5 = 320*y
 			add $t5, $t5, $t0					# t5 = 320*y + x
 			add $t5, $t5, $t2					# t5 = END_BASE + 320*y + x
@@ -350,18 +563,18 @@
 			addi $t5, $t5, -25079
 
 			slt $s0, $t5, $t2					# se t5 < t2
-			bne $s0, $zero, pula_print
+			bne $s0, $zero, pula_print_AZUL
 			
 			sb $t3, 0($t5)						# plota o ponto no Bitmap Display
 			
-			pula_print:
-				j DESENHA_CALCULA_PONTO
+			pula_print_AZUL:
+				j DESENHA_CALCULA_PONTO_AZUL
 
 			# sb $t3, 0($t5)						# plota o ponto no Bitmap Display
 
 			# j DESENHA_CALCULA_PONTO
 
-		DESENHA_FIM:
+		DESENHA_FIM_AZUL:
 			lw $ra, 0($sp)
 			addi $sp, $sp, 4
-			jr $ra
+			jr $ra	
