@@ -13,6 +13,7 @@
 	# Dados do Bitmap Display
 	WIDTH:  .float 320
 	HEIGHT: .float 240
+	INTER: .float 0.05
 
 	# Limites Inferiores e Superiores
 	LINF_BAT: .float -7
@@ -103,13 +104,11 @@
 		jr $ra
 
 	# AMARELA = abs(x/2) - 0.0913722 * x^2 - 3 + sqrt(1-(abs(abs(x)-2)-1)^2)
-	# abs(x/2) -   (0.0913722 * (x*x))      - 3 
-	FUNCAO_AMARELO:	
-		l.s $f17, ZERO
-		l.s $f18, DOIS
-		l.s $f19, TRES
-		l.s $f20, AMARELO_AUX
-		l.s $f21, UM
+	FUNCAO_AMARELO:
+		l.s $f18, DOIS					# 2
+		l.s $f19, TRES 					# 3
+		l.s $f20, AMARELO_AUX  	# 0.0913722
+		l.s $f21, UM 						# 1
 
 		div.s $f14, $f0, $f18  # f14 = x / 2
 		abs.s $f14, $f14 			 # f14 = abs (f14)
@@ -267,9 +266,9 @@
 	# REG Nº 27 TEM O TAMANHO DO QUADRADO
 	DEFINE_QUADRADO:
 
-		l.s $f4, WIDTH
-		div.s $f27, $f25, $f4					# f4 = tamanho_x/320
-
+#		l.s $f4, WIDTH
+#		div.s $f27, $f25, $f4					# f4 = tamanho_x/320
+		l.s $f27, INTER  							# determina um intervalo maior e mais exato para fins de eu decidi
 		jr $ra
 
 	PLANO_CARTESIANO:
