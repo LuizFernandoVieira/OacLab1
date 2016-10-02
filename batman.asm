@@ -1,3 +1,4 @@
+			jal FUNCAO_AMARELO
 .eqv END_BASE 0xFF000000 # Endereço Base
 .eqv COR_VERMELHA 0x07
 .eqv COR_PRETA 0x00
@@ -45,6 +46,9 @@
 	AZUL_AUX_2: .float 0.5
 	AZUL_AUX_3: .float 0.75
 
+
+	PULA: .asciiz "\n "
+
 .text
 
 	MAIN:
@@ -89,11 +93,18 @@
 		add.s $f15, $f17, $f18 #	$f15 = -3 ... CUIDADO!!! assumi que o f15 de cima nao seria mais util
 		mul.s $f12, $f13, $f15  # $f12 = $f13 * -3
 		
+		li $v0, 2
+		syscall
+
+		li $v0, 4
+		la $a0, PULA
+		syscall
+
 		jr $ra
 
-	# AMARELA = abs(x/2) - 0.0913722*x^2-3 + sqrt(1-(abs(abs(x)-2)-1)^2)
+	# AMARELA = abs(x/2) - 0.0913722 * x^2 - 3 + sqrt(1-(abs(abs(x)-2)-1)^2)
+	# abs(x/2) -   (0.0913722 * (x*x))      - 3 
 	FUNCAO_AMARELO:	
-
 		l.s $f17, ZERO
 		l.s $f18, DOIS
 		l.s $f19, TRES
@@ -103,19 +114,26 @@
 		div.s $f14, $f0, $f18  # f14 = x / 2
 		abs.s $f14, $f14 			 # f14 = abs (f14)
 		mul.s $f13, $f0, $f0   # f13 = x * x
-		sub.s $f13, $f13, $f19 # f13 = f13 - 3
 		mul.s $f13, $f20, $f13 # f13 = 0.0913722 * f13
+		sub.s $f13, $f13, $f19 # f13 = f13 - 3
 		sub.s $f13, $f14, $f13 # f13 = f14 - f13
 
 		abs.s $f14, $f0        # f14 = abs(x)
 		sub.s $f14, $f14, $f18 # f14 = f14 - 2
 		abs.s $f14, $f14       # f14 = abs (f14)
-		sub.s $f14, $f14, $f18 # f14 = f14 - 1
+		sub.s $f14, $f14, $f21 # f14 = f14 - 1
 		mul.s $f14, $f14, $f14 # f14 = f14 * f14
 		sub.s $f14, $f21, $f14 # f14 = 1 - f14
 		sqrt.s $f14, $f14      # f14 = sqrt (f14)
 
 		add.s $f12, $f13, $f14 # f12 = $f13 + $f14
+
+		li $v0, 2
+		syscall
+
+		li $v0, 4
+		la $a0, PULA
+		syscall
 
 		jr $ra
 
@@ -288,7 +306,7 @@
 		sw $ra, 0($sp)
 
 		DESENHA_CALCULA_PONTO:
-			jal FUNCAO_AZUL
+			jal FUNCAO_AMARELO
 
 			# Verifica se o expoente é diferente de 255
 			mfc1 $s0, $f12
