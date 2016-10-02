@@ -35,7 +35,7 @@
 	VERDE_AUX_1: .float 2.71052
 	VERDE_AUX_2: .float 1.5
 	VERDE_AUX_3: .float 0.5
-	VERDE_AUX_4: .float 1.35526
+	VERDE_AUX_4: .float -1.35526
 	VERDE_AUX_5: .float 0.9
 
 .text
@@ -58,8 +58,6 @@
   
   # VERMELHA = (‑3)*sqrt(1-(x/7)^2)*sqrt( abs(abs(x)-4)/(abs(x)-4) )  
 	FUNCAO_VERMELHO:	
-		# x ta em $f0	
-
 		l.s $f17, ZERO					# f17 = 0 (fiz isso para usar f17 como $zero)
 
 		abs.s $f15, $f0 				# f15 = abs(x) 
@@ -181,7 +179,8 @@
 
 		jr $ra
 
-	# VERDE = (2.71052+1.5-0.5*abs(x)-1.35526*sqrt(4-(abs(x)-1)^2)) * sqrt(abs(abs(x)-1)/(abs(x)-1))+0.9  
+	# VERDE = (2.71052+1.5-0.5*abs(x) - 1.35526*sqrt(4-(abs(x)-1)^2)) * sqrt(abs(abs(x)-1)/(abs(x)-1)) + 0.9
+
 	FUNCAO_VERDE:
 
 		l.s $f18, VERDE_AUX_1
@@ -193,16 +192,16 @@
 		l.s $f24, QUATRO
 														# (2.71052+1.5-0.5*abs(x)-1.35526 * sqrt(4-(abs(x)-1)^2))
 		add.s $f13, $f18, $f19 	# f13 = 2.71052 + 1.5
-		sub.s $f13, $f13, $f20  # f13 = f13 - 0.5
 		abs.s $f17, $f0 				# f17 = abs(f0)
-		sub.s $f17, $f17, $f21  # f17 = f17 - 1.35526
-		mul.s $f13, $f13, $f17  # f13 = f13 * $f17     # 2.71052+1.5-0.5 * abs(x)-1.35526
+		mul.s $f17, $f17, $f20  # f17 = 0.5 * f17
+		sub.s $f13, $f13, $f20  # f13 = f13 - f17
 		abs.s $f16, $f0 				# f16 = abs(f0)
 		sub.s $f16, $f16, $f23  # f16 = f16 - 1 
 		mul.s $f16, $f16, $f16  # f16 = f16 * f16
 		sub.s $f16, $f24, $f16  # f16 = 4 - f16
-		sqrt.s $f16, $f16       # f16 = sqrt (f16)		 # sqrt(4-(abs(x)-1)^2))
-		mul.s $f13, $f13, $f16  # f13 = $f13 * $f16
+		sqrt.s $f16, $f16       # f16 = sqrt (f16)		 
+		mul.s $f16, $f22, $f16  # -1.35526 * sqrt(4-(abs(x)-1)^2))
+		sub.s $f13, $f13, $f16  # f13 = $f13 - $f16
 
 										        # sqrt(abs(abs(x)-1)/(abs(x)-1)) + 0.9
 		abs.s $f14, $f0         # f14 = abs ($f0)
@@ -274,7 +273,7 @@
 		sw $ra, 0($sp)
 
 		DESENHA_CALCULA_PONTO:
-			jal FUNCAO_VERMELHO
+			jal FUNCAO_VERDE
 
 			# Verifica se o expoente é diferente de 255
 			mfc1 $s0, $f12
@@ -310,9 +309,17 @@
 
 			addi $t5, $t5, -25079
 
+			slt $s0, $t5, $t2					# se t5 < t2
+			bne $s0, $zero, pula_print
+			
 			sb $t3, 0($t5)						# plota o ponto no Bitmap Display
+			
+			pula_print:
+				j DESENHA_CALCULA_PONTO
 
-			j DESENHA_CALCULA_PONTO
+			# sb $t3, 0($t5)						# plota o ponto no Bitmap Display
+
+			# j DESENHA_CALCULA_PONTO
 
 		DESENHA_FIM:
 			lw $ra, 0($sp)
