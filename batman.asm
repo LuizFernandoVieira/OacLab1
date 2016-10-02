@@ -1,30 +1,42 @@
 .eqv END_BASE 0xFF000000 # Endereço Base
-.eqv COR_VERMELHA 7
-.eqv COR_PRETA 0
+.eqv COR_VERMELHA 0x07
+.eqv COR_PRETA 0x00
+.eqv COR_VERDE 0x28
+.eqv COR_AMARELA 0x27
+.eqv COR_AZUL 0xc0 
 .eqv WIDTH_INT 320
 .eqv HEIGHT_INT 240
 
 .data
 
 	# Dados do Bitmap Display
-	WIDTH: .float 320
+	WIDTH:  .float 320
 	HEIGHT: .float 240
 
 	# Limites Inferiores e Superiores
 	LINF_BAT: .float -7
 	LSUP_BAT: .float 7
 
-	# Auxiliares como imediato
-	ZERO: .float 0
-	UM: .float 1
-	DOIS: .float 2
-	TRES:	.float 3
-	SETE: .float 7
+	# Auxiliares imediatos
+	ZERO:   .float 0
+	UM:     .float 1
+	DOIS:   .float 2
+	TRES:	  .float 3
+	QUATRO: .float 4
+	SETE:   .float 7
 
 	M_QUATRO: .float -4
-	M_TRES:	.float -3
+	M_TRES:	  .float -3
 
+	# Auxiliares imediatos Amarelo
 	AMARELO_AUX: .float 0.0913722
+
+	# Auxiliares imediatos Verde
+	VERDE_AUX_1: .float 2.71052
+	VERDE_AUX_2: .float 1.5
+	VERDE_AUX_3: .float 0.5
+	VERDE_AUX_4: .float 1.35526
+	VERDE_AUX_5: .float 0.9
 
 .text
 
@@ -102,12 +114,106 @@
 
 		jr $ra
 
-	# AZUL = 2*sqrt((‑abs(abs(x)-1))*abs(3-abs(x))/((abs(x)-1)*(3-abs(x))))*(1+abs(abs(x)-3)/(abs(x)-3))*sqrt(1-(x/7)^2)+(5+0.97*(abs(x-0.5)+abs(x+0.5))-3*(abs(x-0.75)+abs(x+0.75)))*(1+abs(1-abs(x))/(1-abs(x)))
+	# AZUL = 
+	# 2 * sqrt(  (‑abs(abs(x)-1)) * abs(3-abs(x)) / ((abs(x)-1)*(3-abs(x)))  ) 
+	# * 
+	#		(1+abs(abs(x)-3)/(abs(x)-3)) 
+	#		* 
+	#		sqrt(1-(x/7)^2)+(5+0.97*(abs(x-0.5)+abs(x+0.5))-3 * (abs(x-0.75)+abs(x+0.75))) 
+	#		* 
+	#		(1+abs(1-abs(x))/(1-abs(x)))
 	FUNCAO_AZUL:
+	  # f13 = abs (f0)
+	  # f17 = 3
+	  # f17 = f17 - f13
+		# f17 = abs (f17)
+	  # f13 = f13 - 1
+		# f13 = abs (f13)
+		# f13 = -f13
+	  # f13 = f13 * f17  # (‑abs(abs(x)-1))*abs(3-abs(x))
+	  # f15 = abs (f0)   # abs(x)
+	  # f16 = 3          # 3
+	  # f16 = f16 - f15  # 3-abs(x)
+	  # f15 = f15 - 1    # abs(x)-1
+	  # f15 = f15 * f16  # ((abs(x)-1)*(3-abs(x)))
+		# f13 = f13 / f15  # (‑abs(abs(x)-1))*abs(3-abs(x)) / ((abs(x)-1)*(3-abs(x)))
+		# f13 = sqrt (f13) # sqrt((‑abs(abs(x)-1))*abs(3-abs(x)) / ((abs(x)-1)*(3-abs(x)))) 
+		# f13 = 2 * f13		 # 2 * sqrt((‑abs(abs(x)-1))*abs(3-abs(x))/((abs(x)-1)*(3-abs(x)))) 
+
+		# f18 = f0 / 7
+		# f18 = f18 * f18
+		# f18 = 1 - f18
+		# f18 = sqrt(f18)
+
+		# f21 = f0 - 0.5
+		# f21 = abs(f21)
+		# f23 = f0 + 0.5
+		# f23 = abs(f23)
+		# f21 = f21 + f23
+		# f21 = 0.97 * f21 
+		# f21 = 5 + f21
+		# f22 = f0 - 0.75
+		# f22 = abs(f22)
+		# f24 = f0 + 0.75
+		# f24 = abs(f24)
+		#	f22 = f22 + f24
+		# f22 = 3 * f22
+		# f21 = f21 - f22		
+		# f18 = f18 + f21 	# sqrt(1-(x/7)^2)+(5+0.97*(abs(x-0.5)+abs(x+0.5))-3 * (abs(x-0.75)+abs(x+0.75))) 
+
+		# f20 = abs(f0)
+		# f20 = 1 - f20
+		# f26 = f20
+		# f20 = abs(f20) 
+		# f20 = f20 / f26
+		# f20 = 1 + f20
+		# f18 = f18 * f20
+
+		# f14 = abs(f0)
+		# f14 = f14 - 3
+		# f19 = f14 
+		# f14 = abs(f14)
+		# f14 = f14 / f19
+		# f14 = 1 + f14
+		# f14 = f14 * f18
+
+		# f12 = f13 * f14 
+
 		jr $ra
 
-	# VERDE = (2.71052+1.5-0.5*abs(x)-1.35526*sqrt(4-(abs(x)-1)^2))*sqrt(abs(abs(x)-1)/(abs(x)-1))+0.9  
+	# VERDE = (2.71052+1.5-0.5*abs(x)-1.35526*sqrt(4-(abs(x)-1)^2)) * sqrt(abs(abs(x)-1)/(abs(x)-1))+0.9  
 	FUNCAO_VERDE:
+
+		l.s $f18, VERDE_AUX_1
+		l.s $f19, VERDE_AUX_2
+		l.s $f20, VERDE_AUX_3
+		l.s $f21, VERDE_AUX_4
+		l.s $f22, VERDE_AUX_4
+		l.s $f23, UM
+		l.s $f24, QUATRO
+														# (2.71052+1.5-0.5*abs(x)-1.35526 * sqrt(4-(abs(x)-1)^2))
+		add.s $f13, $f18, $f19 	# f13 = 2.71052 + 1.5
+		sub.s $f13, $f13, $f20  # f13 = f13 - 0.5
+		abs.s $f17, $f0 				# f17 = abs(f0)
+		sub.s $f17, $f17, $f21  # f17 = f17 - 1.35526
+		mul.s $f13, $f13, $f17  # f13 = f13 * $f17     # 2.71052+1.5-0.5 * abs(x)-1.35526
+		abs.s $f16, $f0 				# f16 = abs(f0)
+		sub.s $f16, $f16, $f23  # f16 = f16 - 1 
+		mul.s $f16, $f16, $f16  # f16 = f16 * f16
+		sub.s $f16, $f24, $f16  # f16 = 4 - f16
+		sqrt.s $f16, $f16       # f16 = sqrt (f16)		 # sqrt(4-(abs(x)-1)^2))
+		mul.s $f13, $f13, $f16  # f13 = $f13 * $f16
+
+										        # sqrt(abs(abs(x)-1)/(abs(x)-1)) + 0.9
+		abs.s $f14, $f0         # f14 = abs ($f0)
+		sub.s $f14, $f14, $f23  # f14 = f14 - 1
+		abs.s $f15, $f14 				# f15 = abs (f14)
+		div.s $f14, $f15, $f14  # f14 = f15 / f14
+		sqrt.s $f14, $f14       # f14 = sqrt (f14)
+		add.s $f14, $f14, $f22  # f14 = $f14 + 0.9 
+
+		mul.s $f12, $f13, $f14 # f12 = $f13 * $f14
+
 		jr $ra
 
 	# REG Nº 25 TEM O TAMANHO DO INTERVALO DE X
@@ -168,7 +274,7 @@
 		sw $ra, 0($sp)
 
 		DESENHA_CALCULA_PONTO:
-			jal FUNCAO_AMARELO
+			jal FUNCAO_VERMELHO
 
 			# Verifica se o expoente é diferente de 255
 			mfc1 $s0, $f12
