@@ -38,7 +38,7 @@
 	VERDE_AUX_1: .float 2.71052
 	VERDE_AUX_2: .float 1.5
 	VERDE_AUX_3: .float 0.5
-	VERDE_AUX_4: .float -1.35526
+	VERDE_AUX_4: .float 1.35526
 	VERDE_AUX_5: .float 0.9
 
 	# Auxiliares imediatos Azul
@@ -215,36 +215,42 @@
 
 	# VERDE = (2.71052+1.5-0.5*abs(x) - 1.35526*sqrt(4-(abs(x)-1)^2)) * sqrt(abs(abs(x)-1)/(abs(x)-1)) + 0.9
 	FUNCAO_VERDE:
-
-		l.s $f18, VERDE_AUX_1
-		l.s $f19, VERDE_AUX_2
-		l.s $f20, VERDE_AUX_3
-		l.s $f21, VERDE_AUX_4
-		l.s $f22, VERDE_AUX_4
+		l.s $f18, VERDE_AUX_1 # 2.71052
+		l.s $f19, VERDE_AUX_2 # 1.5
+		l.s $f20, VERDE_AUX_3 # 0.5
+		l.s $f21, VERDE_AUX_4 # 1.35526
+		l.s $f22, VERDE_AUX_5	# 0.9
 		l.s $f23, UM
 		l.s $f24, QUATRO
-														# (2.71052+1.5-0.5*abs(x)-1.35526 * sqrt(4-(abs(x)-1)^2))
-		add.s $f13, $f18, $f19 	# f13 = 2.71052 + 1.5
-		abs.s $f17, $f0 				# f17 = abs(f0)
-		mul.s $f17, $f17, $f20  # f17 = 0.5 * f17
-		sub.s $f13, $f13, $f20  # f13 = f13 - f17
-		abs.s $f16, $f0 				# f16 = abs(f0)
-		sub.s $f16, $f16, $f23  # f16 = f16 - 1 
-		mul.s $f16, $f16, $f16  # f16 = f16 * f16
-		sub.s $f16, $f24, $f16  # f16 = 4 - f16
-		sqrt.s $f16, $f16       # f16 = sqrt (f16)		 
-		mul.s $f16, $f22, $f16  # -1.35526 * sqrt(4-(abs(x)-1)^2))
-		sub.s $f13, $f13, $f16  # f13 = $f13 - $f16
+														# (2.71052 + 1.5 -0.5*abs(x) - 1.35526 * sqrt(4-(abs(x)-1)^2))
+		add.s $f13, $f18, $f19 	# f13 = 2.71052 + 1.5 									# 2.71052 + 1.5 	
+		abs.s $f17, $f0 				# f17 = abs(f0)													# abs(x)
+		mul.s $f17, $f17, $f20  # f17 = 0.5 * f17												# 0.5*abs(x)
+		sub.s $f13, $f13, $f17  # f13 = f13 - f17												# 2.71052 + 1.5 - 0.5*abs(x) 
+		abs.s $f16, $f0 				# f16 = abs(f0)													# abs(x)
+		sub.s $f16, $f16, $f23  # f16 = f16 - 1 												# abs(x) - 1
+		mul.s $f16, $f16, $f16  # f16 = f16 * f16												# (abs(x)-1)^2)
+		sub.s $f16, $f24, $f16  # f16 = 4 - f16													# 4 - (abs(x)-1)^2)
+		sqrt.s $f16, $f16       # f16 = sqrt (f16)		 									# sqrt(4 - (abs(x)-1)^2))
+		mul.s $f16, $f21, $f16  # 1.35526 * sqrt(4-(abs(x)-1)^2))				# 1.35526 * sqrt(4-(abs(x)-1)^2))
+		sub.s $f13, $f13, $f16  # f13 = $f13 - $f16											# 2.71052 + 1.5 - 0.5*abs(x) - 1.35526 * sqrt(4-(abs(x)-1)^2))
 
-										        # sqrt(abs(abs(x)-1)/(abs(x)-1)) + 0.9
+										        # sqrt(abs(abs(x)-1)/(abs(x)-1))
 		abs.s $f14, $f0         # f14 = abs ($f0)
 		sub.s $f14, $f14, $f23  # f14 = f14 - 1
 		abs.s $f15, $f14 				# f15 = abs (f14)
 		div.s $f14, $f15, $f14  # f14 = f15 / f14
-		sqrt.s $f14, $f14       # f14 = sqrt (f14)
-		add.s $f14, $f14, $f22  # f14 = $f14 + 0.9 
+		sqrt.s $f14, $f14       # f14 = sqrt (f14) 
 
-		mul.s $f12, $f13, $f14 # f12 = $f13 * $f14
+		mul.s $f13, $f13, $f14 # f13 = $f13 * $f14
+		add.s $f12, $f13, $f22  # f12 = $f13 + 0.9
+
+		li $v0, 2
+		syscall
+
+		li $v0, 4
+		la $a0, PULA
+		syscall
 
 		jr $ra
 
@@ -306,7 +312,7 @@
 		sw $ra, 0($sp)
 
 		DESENHA_CALCULA_PONTO:
-			jal FUNCAO_AMARELO
+			jal FUNCAO_VERDE
 
 			# Verifica se o expoente é diferente de 255
 			mfc1 $s0, $f12
