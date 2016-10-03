@@ -364,7 +364,7 @@
 			add $t5, $t5, $t0					# t5 = 320*y + x
 			add $t5, $t5, $t2					# t5 = END_BASE + 320*y + x
 
-			addi $t5, $t5, -25079
+			addi $t5, $t5, -37920
 
 			slt $s0, $t5, $t2					# se t5 < t2
 			bne $s0, $zero, pula_print_VERMELHO
@@ -437,7 +437,7 @@
 			add $t5, $t5, $t0					# t5 = 320*y + x
 			add $t5, $t5, $t2					# t5 = END_BASE + 320*y + x
 
-			addi $t5, $t5, -25079
+			addi $t5, $t5, -37920
 
 			slt $s0, $t5, $t2					# se t5 < t2
 			bne $s0, $zero, pula_print_AMARELO
@@ -509,7 +509,7 @@
 			add $t5, $t5, $t0					# t5 = 320*y + x
 			add $t5, $t5, $t2					# t5 = END_BASE + 320*y + x
 
-			addi $t5, $t5, -25079
+			addi $t5, $t5, -37920
 
 			slt $s0, $t5, $t2					# se t5 < t2
 			bne $s0, $zero, pula_print_VERDE
@@ -581,7 +581,7 @@
 			add $t5, $t5, $t0					# t5 = 320*y + x
 			add $t5, $t5, $t2					# t5 = END_BASE + 320*y + x
 
-			addi $t5, $t5, -25079
+			addi $t5, $t5, -37920
 
 			slt $s0, $t5, $t2					# se t5 < t2
 			bne $s0, $zero, pula_print_AZUL
