@@ -4,7 +4,7 @@
 .eqv COR_PRETA 0x00
 .eqv COR_VERDE 0x28
 .eqv COR_AMARELA 0x27
-.eqv COR_AZUL 0xc0 
+.eqv COR_AZUL 0xc0
 .eqv WIDTH_INT 320
 .eqv HEIGHT_INT 240
 
@@ -61,6 +61,7 @@
 		jal INTERVALO
 		jal DEFINE_QUADRADO
 
+		jal DESENHA_AMARELO
 		jal DESENHA_VERMELHO
 		jal DESENHA_AMARELO
 		jal DESENHA_VERDE
@@ -71,12 +72,12 @@
 
   # FAUNÇÃO BATMAN
   # REFERENCIA = http://www.fernandosavio.com/simbolo-do-batman-no-resultado-do-google/
-  
-  # VERMELHA = (‑3)*sqrt(1-(x/7)^2)*sqrt( abs(abs(x)-4)/(abs(x)-4) )  
-	FUNCAO_VERMELHO:	
+
+  # VERMELHA = (‑3)*sqrt(1-(x/7)^2)*sqrt( abs(abs(x)-4)/(abs(x)-4) )
+	FUNCAO_VERMELHO:
 		l.s $f17, ZERO					# f17 = 0 (fiz isso para usar f17 como $zero)
 
-		abs.s $f15, $f0 				# f15 = abs(x) 
+		abs.s $f15, $f0 				# f15 = abs(x)
 		l.s $f18, M_QUATRO
 		add.s $f15, $f15, $f18 	# f15 = f15 - 4
 		add.s $f16, $f17, $f15	# f16 = f15
@@ -97,7 +98,7 @@
 		l.s $f18, M_TRES
 		add.s $f15, $f17, $f18 #	$f15 = -3 ... CUIDADO!!! assumi que o f15 de cima nao seria mais util
 		mul.s $f12, $f13, $f15  # $f12 = $f13 * -3
-		
+
 		li $v0, 2
 		syscall
 
@@ -118,7 +119,7 @@
 		abs.s $f14, $f14 			 # f14 = abs (f14)
 		mul.s $f13, $f0, $f0   # f13 = x * x
 		mul.s $f13, $f20, $f13 # f13 = 0.0913722 * f13
-		sub.s $f13, $f13, $f19 # f13 = f13 - 3
+		sub.s $f14, $f14, $f19 # f14 = f14 - 3
 		sub.s $f13, $f14, $f13 # f13 = f14 - f13
 
 		abs.s $f14, $f0        # f14 = abs(x)
@@ -140,13 +141,13 @@
 
 		jr $ra
 
-	# AZUL = 
-	# 2 * sqrt(  (‑abs(abs(x)-1)) * abs(3-abs(x)) / ((abs(x)-1)*(3-abs(x)))  ) 
-	# * 
-	#		(1+abs(abs(x)-3)/(abs(x)-3)) 
-	#		* 
-	#		sqrt(1-(x/7)^2)+(5+0.97*(abs(x-0.5)+abs(x+0.5))-3 * (abs(x-0.75)+abs(x+0.75))) 
-	#		* 
+	# AZUL =
+	# 2 * sqrt(  (‑abs(abs(x)-1)) * abs(3-abs(x)) / ((abs(x)-1)*(3-abs(x)))  )
+	# *
+	#		(1+abs(abs(x)-3)/(abs(x)-3))
+	#		*
+	#		sqrt(1-(x/7)^2)+(5+0.97*(abs(x-0.5)+abs(x+0.5))-3 * (abs(x-0.75)+abs(x+0.75)))
+	#		*
 	#		(1+abs(1-abs(x))/(1-abs(x)))
 	FUNCAO_AZUL:
 		l.s $f20, ZERO
@@ -172,8 +173,8 @@
 	  mul.s $f13, $f13, $f17 # f13 = f13 * f17  	# (‑abs(abs(x)-1))*abs(3-abs(x))
 	  mul.s $f15, $f15, $f16 # f15 = f15 * f16  	# ((abs(x)-1)*(3-abs(x)))
 		div.s $f13, $f13, $f15 # f13 = f13 / f15  	# (‑abs(abs(x)-1))*abs(3-abs(x)) / ((abs(x)-1)*(3-abs(x)))
-		sqrt.s $f13, $f13      # f13 = sqrt (f13) 	# sqrt((‑abs(abs(x)-1))*abs(3-abs(x)) / ((abs(x)-1)*(3-abs(x)))) 
-		mul.s $f13, $f13, $f24 # f13 = 2 * f13		 	# 2 * sqrt((‑abs(abs(x)-1))*abs(3-abs(x))/((abs(x)-1)*(3-abs(x)))) 
+		sqrt.s $f13, $f13      # f13 = sqrt (f13) 	# sqrt((‑abs(abs(x)-1))*abs(3-abs(x)) / ((abs(x)-1)*(3-abs(x))))
+		mul.s $f13, $f13, $f24 # f13 = 2 * f13		 	# 2 * sqrt((‑abs(abs(x)-1))*abs(3-abs(x))/((abs(x)-1)*(3-abs(x))))
 
 		div.s $f15, $f0, $f26  # f15 = f0 / 7				# x/7
 		mul.s $f15, $f15, $f15 # f15 = f15 * f15		# (x/7)^2
@@ -199,15 +200,15 @@
 
 		abs.s $f16, $f0        # f16 = abs(f0)			# abs(x)
 		sub.s $f16, $f22, $f16 # f16 = 1 - f16			# 1 - abs(x)
-		add.s $f19, $f20, $f16 # f19 = f16					
+		add.s $f19, $f20, $f16 # f19 = f16
 		abs.s $f16, $f16       # f16 = abs(f16) 		# abs(1 - abs(x))
-		div.s $f16, $f16, $f19 # f16 = f16 / f19		# abs(1 - abs(x))/(1 - abs(x)) 
-		add.s $f16, $f22, $f16 # f16 = 1 + f16			# 1 + abs(1 - abs(x))/(1 - abs(x)) 
+		div.s $f16, $f16, $f19 # f16 = f16 / f19		# abs(1 - abs(x))/(1 - abs(x))
+		add.s $f16, $f22, $f16 # f16 = 1 + f16			# 1 + abs(1 - abs(x))/(1 - abs(x))
 		mul.s $f17, $f17, $f16 # f17 = f16 * f17		# (1 + abs(1 - abs(x))/(1 - abs(x))) * (5 + 0.97 * (abs(x - 0.5) + abs(x + 0.5)) - 3 * abs(x - 0.75) + abs(x + 0.75))
 
 		abs.s $f14, $f0        # f14 = abs(f0)			# abs(x)
 		sub.s $f14, $f14, $f21 # f14 = f14 - 3			# abs(x) - 3
-		add.s $f19, $f20, $f14 # f19 = f14 
+		add.s $f19, $f20, $f14 # f19 = f14
 		abs.s $f14, $f14       # f14 = abs(f14)			# abs(abs(x) - 3)
 		div.s $f14, $f14, $f19 # f14 = f14 / f19		# abs(abs(x) - 3)/(abs(x) - 3)
 		add.s $f14, $f22, $f14 # f14 = 1 + f14			# 1 + abs(abs(x) - 3)/(abs(x) - 3)
@@ -227,10 +228,10 @@
 		l.s $f23, UM
 		l.s $f24, QUATRO
 														# (2.71052 + 1.5 -0.5*abs(x) - 1.35526 * sqrt(4-(abs(x)-1)^2))
-		add.s $f13, $f18, $f19 	# f13 = 2.71052 + 1.5 									# 2.71052 + 1.5 	
+		add.s $f13, $f18, $f19 	# f13 = 2.71052 + 1.5 									# 2.71052 + 1.5
 		abs.s $f17, $f0 				# f17 = abs(f0)													# abs(x)
 		mul.s $f17, $f17, $f20  # f17 = 0.5 * f17												# 0.5*abs(x)
-		sub.s $f13, $f13, $f17  # f13 = f13 - f17												# 2.71052 + 1.5 - 0.5*abs(x) 
+		sub.s $f13, $f13, $f17  # f13 = f13 - f17												# 2.71052 + 1.5 - 0.5*abs(x)
 		abs.s $f16, $f0 				# f16 = abs(f0)													# abs(x)
 		sub.s $f16, $f16, $f23  # f16 = f16 - 1 												# abs(x) - 1
 		mul.s $f16, $f16, $f16  # f16 = f16 * f16												# (abs(x)-1)^2)
@@ -244,7 +245,7 @@
 		sub.s $f14, $f14, $f23  # f14 = f14 - 1
 		abs.s $f15, $f14 				# f15 = abs (f14)
 		div.s $f14, $f15, $f14  # f14 = f15 / f14
-		sqrt.s $f14, $f14       # f14 = sqrt (f14) 
+		sqrt.s $f14, $f14       # f14 = sqrt (f14)
 
 		mul.s $f13, $f13, $f14 # f13 = $f13 * $f14
 		add.s $f12, $f13, $f22  # f12 = $f13 + 0.9
@@ -360,9 +361,9 @@
 
 			slt $s0, $t5, $t2					# se t5 < t2
 			bne $s0, $zero, pula_print_VERMELHO
-			
+
 			sb $t3, 0($t5)						# plota o ponto no Bitmap Display
-			
+
 			pula_print_VERMELHO:
 				j DESENHA_CALCULA_PONTO_VERMELHO
 
@@ -428,9 +429,9 @@
 
 			slt $s0, $t5, $t2					# se t5 < t2
 			bne $s0, $zero, pula_print_AMARELO
-			
+
 			sb $t3, 0($t5)						# plota o ponto no Bitmap Display
-			
+
 			pula_print_AMARELO:
 				j DESENHA_CALCULA_PONTO_AMARELO
 
@@ -496,9 +497,9 @@
 
 			slt $s0, $t5, $t2					# se t5 < t2
 			bne $s0, $zero, pula_print_VERDE
-			
+
 			sb $t3, 0($t5)						# plota o ponto no Bitmap Display
-			
+
 			pula_print_VERDE:
 				j DESENHA_CALCULA_PONTO_VERDE
 
@@ -564,9 +565,9 @@
 
 			slt $s0, $t5, $t2					# se t5 < t2
 			bne $s0, $zero, pula_print_AZUL
-			
+
 			sb $t3, 0($t5)						# plota o ponto no Bitmap Display
-			
+
 			pula_print_AZUL:
 				j DESENHA_CALCULA_PONTO_AZUL
 
@@ -577,4 +578,4 @@
 		DESENHA_FIM_AZUL:
 			lw $ra, 0($sp)
 			addi $sp, $sp, 4
-			jr $ra	
+			jr $ra
