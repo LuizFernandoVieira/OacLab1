@@ -49,6 +49,7 @@
 
 
 	PULA: .asciiz "\n "
+	bla: .asciiz "teste"
 
 .text
 
@@ -61,10 +62,12 @@
 		jal INTERVALO
 		jal DEFINE_QUADRADO
 
-		jal DESENHA_AMARELO
 		jal DESENHA_VERMELHO
+    l.s $f0, LINF_BAT
 		jal DESENHA_AMARELO
+    l.s $f0, LINF_BAT
 		jal DESENHA_VERDE
+    l.s $f0, LINF_BAT
 		jal DESENHA_AZUL
 
 		li $v0, 10
@@ -316,6 +319,10 @@
 
 	DESENHA_VERMELHO:
 
+		li $v0, 4
+		la $a0, bla
+		syscall
+
 		la $t2, END_BASE
 		li $t3, COR_VERMELHA
 		li $t4, WIDTH_INT
@@ -374,6 +381,7 @@
 		DESENHA_FIM_VERMELHO:
 			lw $ra, 0($sp)
 			addi $sp, $sp, 4
+
 			jr $ra
 
 	###################################################
@@ -383,6 +391,10 @@
 	###################################################
 
 	DESENHA_AMARELO:
+
+		li $v0, 4
+		la $a0, bla
+		syscall
 
 		la $t2, END_BASE
 		li $t3, COR_AMARELA
@@ -452,6 +464,10 @@
 
 	DESENHA_VERDE:
 
+		li $v0, 4
+		la $a0, bla
+		syscall
+
 		la $t2, END_BASE
 		li $t3, COR_VERDE
 		li $t4, WIDTH_INT
@@ -519,6 +535,10 @@
 	###################################################
 
 	DESENHA_AZUL:
+
+		li $v0, 4
+		la $a0, bla
+		syscall
 
 		la $t2, END_BASE
 		li $t3, COR_AZUL
